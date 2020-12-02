@@ -45,13 +45,7 @@ def get_add_data(cur, conn, date):
         deaths = json_results['death']
         cur.execute('INSERT INTO Covid (Date, Positives, Negatives, Deaths) VALUES (?,?,?,?)', (date, positives, negatives, deaths))
         conn.commit()
-
-
-def add_run_to_db(runcount, cur, conn):
-    runcount = runcount
-    cur.execute('INSERT INTO Runs (Runcount) VALUES (?)', (runcount))
-    '''
-
+'''
 def main():
 
     path = os.path.dirname(os.path.abspath(__file__))
@@ -76,7 +70,7 @@ def main():
     delta = datetime.timedelta(days=1)
     current_date = start_date
     while current_date <= end_date:
-        if count < 24:
+        if count >= 24:
             break
         the_date = int(current_date.strftime("%Y%m%d"))
         if get_add_data(cur, conn, the_date) == 1:
