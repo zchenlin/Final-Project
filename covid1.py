@@ -74,16 +74,16 @@ def main():
             # get the data from the website
             # count += 1
         # write to the sql db
-
-            
         # if count >= 24:
         #     break
         the_date = int(current_date.strftime("%Y%m%d"))
         conn = sqlite3.connect(path+'/finalproj.db')
         cur = conn.cursor()
         if get_add_data(cur, conn, the_date) == 1:
-            print(count)
+            #print(count)
             count += 1
+            if count >= 25:
+                break
         # cur.close()
         # conn.close()
         current_date += delta #increments time in datetime object
