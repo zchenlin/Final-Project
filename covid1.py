@@ -3,13 +3,23 @@ import os
 import requests
 import sqlite3
 import datetime
+import matplotlib.pyplot as plt
 
 '''
 This is a function that creates a table in the database titled 'Covid' with columns Date, Positives, Negatives, and Deaths - all type 
 INTEGER.
 '''
 def create_covid_table(cur, conn):
-    cur.execute('CREATE TABLE IF NOT EXISTS Covid (Date INTEGER, Positives INTEGER, Negatives INTEGER, Deaths INTEGER)')
+    cur.execute('CREATE TABLE IF NOT EXISTS Covid (Date DATE, Positives INTEGER, Negatives INTEGER, Deaths INTEGER)')
+    conn.commit()
+    return cur, conn
+
+'''
+This is a function that creates a table in the database titled 'Hospitalized' with columns Date, Hospitalized, ICU, and Ventilator - all type 
+INTEGER.
+'''
+def create_hospitalized_table(cur, conn):
+    cur.execute('CREATE TABLE IF NOT EXISTS Hospitalized (Date DATE, Hospitalized INTEGER, ICU INTEGER, Ventilator INTEGER)')
     conn.commit()
     return cur, conn
 
@@ -19,13 +29,13 @@ where the date changes for each call. The date must be in the integer format eg.
 '''
 def create_request_url(date):
     base_url = 'https://api.covidtracking.com'
-    request_url = base_url + '/v1/us/{}.json'.format(date) #date must be in integer format eg. 20200311
+    request_url = base_url + '/v1/us/{}.json'.format(date.strftime('%Y%m%d')) #date must be in integer format eg. 20200311
     return request_url
 
 '''
 This is a function that retrieves the data from the API and json and adds the data to the database finalproj.db.
 Call create_request_url with the date parameter and set it to a variable url.
-Then check if the date exists in the database already to account for duplicates in the database by using a SELECT statement with the date
+Then check if the date exists in the database already to account for duplicates in the database before even grabbing data from API by using a SELECT statement with the date
 If that SELECT statement fetches something, then the data already exists in the database, so return 0.
 Else, use a try and except statement to retrieve data from the API. The try succeeds when the API JSON data are retrieved and loaded into
 json_results. The except happens when there is an error grabbing data from the API and returns None, exiting the function.
@@ -34,9 +44,9 @@ Then insert the data into the Covid table and return 1.
 '''
 def get_add_data(cur, conn, date):
     url = create_request_url(date)
-    cur.execute("SELECT * FROM Covid WHERE Covid.Date = ?", (date, ))
+    cur.execute("SELECT * FROM Covid WHERE Covid.Date = ?", (date.strftime('%Y-%m-%d'), ))
     conn.commit()
-    check = cur.fetchone() #checks if the date/data exists in the database first to account for duplicates
+    check = cur.fetchone() #checks if the date/data exists in the database first to account for duplicates before grabbing API
     conn.commit()
     if check != None: #if the date already exists
         print(date, 'already exists')
@@ -48,14 +58,47 @@ def get_add_data(cur, conn, date):
         except:
             print("Exception")
             return None #returns none when there is an error grabbing data from API
-        date = json_results['date']
+        date = datetime.datetime.strptime(str(json_results['date']), '%Y%m%d')
         positives = json_results['positive']
         negatives = json_results['negative']
         deaths = json_results['death']
+        hospitalized = json_results['hospitalizedCurrently']
+        icu = json_results['inIcuCurrently']
+        ventilator = json_results['onVentilatorCurrently']
+
         print(json_results) #prints out dictionary of our data
-        cur.execute('INSERT INTO Covid (Date, Positives, Negatives, Deaths) VALUES (?,?,?,?)', (date, positives, negatives, deaths))
-        conn.commit() 
+        cur.execute('INSERT INTO Covid (Date, Positives, Negatives, Deaths) VALUES (?,?,?,?)', (date.strftime('%Y-%m-%d'), positives, negatives, deaths))
+        conn.commit()
+        cur.execute('INSERT INTO Hospitalized (Date, Hospitalized, ICU, Ventilator) VALUES (?,?,?,?)', (date.strftime('%Y-%m-%d'), hospitalized, icu, ventilator))
+        conn.commit()
         return 1 #returns true when data is inserted into database
+
+
+def jointables(cur, conn):
+    cur.execute("SELECT strftime('%m', c.Date) as Month, sum(c.Positives), sum(h.Hospitalized) FROM Covid c INNER JOIN Hospitalized h ON c.Date = h.Date GROUP BY Month") 
+    conn.commit()
+    data = cur.fetchall()
+    print(data)
+    return data
+    #write back data to a file
+    #list of rows, must unpack
+
+def visualization(data):
+    month_list = []
+    pos_list = []
+    hos_list = []
+    for month in data:
+        month_list.append(month[0])
+        pos_list.append(month[1])
+        hos_list.append(month[2])
+    plt.bar(range(len(data)), pos_list, align = 'center')
+    plt.xticks(range(len(data)), month_list)
+    plt.xlabel('Month')
+    plt.ylabel('Positive cases')
+    plt.title('COVID-19 Positive Cases by Month')
+    plt.show()
+
+
 
 '''
 This is the main function. 
@@ -80,6 +123,7 @@ def main():
     cur = conn.cursor()
 
     create_covid_table(cur, conn) #creates Covid table in db
+    create_hospitalized_table(cur, conn)
 
     count = 0
     start_date = datetime.date(2020,3,11) #start data collection from March 11, 2020
@@ -87,14 +131,16 @@ def main():
     delta = datetime.timedelta(days=1)
     current_date = start_date
     while current_date <= end_date: #loops through all dates between start and end date
-        the_date = int(current_date.strftime("%Y%m%d")) #formats the date to be compatible with API call format (integer value)
+        # can delete the_date = int(current_date.strftime("%Y%m%d")) #formats the date to be compatible with API call format (integer value)
         conn = sqlite3.connect(path+'/finalproj.db')
         cur = conn.cursor()
-        if get_add_data(cur, conn, the_date) == 1: #performs the get_add_data function, and if the insertion is successful...
+        if get_add_data(cur, conn, current_date) == 1: #performs the get_add_data function, and if the insertion is successful...
             count += 1 #increments the number of times get_add_data runs and gets data for each date
             if count >= 25: #limits data collection to 25 dates/rows at a time before breaking and exiting the loop
                 break
         current_date += delta #increments time in datetime object
+
+    visualization(jointables(cur,conn))
         
 
 if __name__ == "__main__":
