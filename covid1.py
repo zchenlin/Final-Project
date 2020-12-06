@@ -90,12 +90,12 @@ def visualization(data):
     for month in data:
         month_list.append(month[0])
         pos_list.append(month[1])
-        hos_list.append(month[2])
-    plt.bar(range(len(data)), pos_list, align = 'center')
+        hos_list.append((month[2] or 0)/1e6)
+    plt.bar(range(len(data)), hos_list, align = 'center')
     plt.xticks(range(len(data)), month_list)
     plt.xlabel('Month')
-    plt.ylabel('Positive cases')
-    plt.title('COVID-19 Positive Cases by Month')
+    plt.ylabel('Numbers of Hospitalizations (millions)')
+    plt.title('COVID-19 Hospitalizations by Month')
     plt.show()
 
 
@@ -127,7 +127,7 @@ def main():
 
     count = 0
     start_date = datetime.date(2020,3,11) #start data collection from March 11, 2020
-    end_date = datetime.date(2020,11,25) #end data collection on November 25, 2020
+    end_date = datetime.date(2020,12,5) #end data collection on December 5, 2020
     delta = datetime.timedelta(days=1)
     current_date = start_date
     while current_date <= end_date: #loops through all dates between start and end date
