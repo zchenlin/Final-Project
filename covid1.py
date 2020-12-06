@@ -78,10 +78,24 @@ def jointables(cur, conn):
     cur.execute("SELECT strftime('%m', c.Date) as Month, sum(c.Positives), sum(h.Hospitalized) FROM Covid c INNER JOIN Hospitalized h ON c.Date = h.Date GROUP BY Month") 
     conn.commit()
     data = cur.fetchall()
-    print(data)
+    #print(data)
     return data
-    #write back data to a file
-    #list of rows, must unpack
+
+def createcalcfile(data):
+    calclist = []
+ 
+    for d in data:
+        calcdict = {}
+        calcdict['month'] = d[0]
+        calcdict['positives'] = d[1]
+        calcdict['hospitalized'] = d[2]
+        calclist.append(calcdict)
+    print(calclist)
+
+    full_path = os.path.join(os.path.dirname(__file__), 'calculations.txt')
+    f = open(full_path, 'w', encoding ='utf-8')
+    json.dump(calclist, f)
+    f.close()
 
 def visualization(data):
     month_list = []
@@ -140,7 +154,9 @@ def main():
                 break
         current_date += delta #increments time in datetime object
 
+    createcalcfile(jointables(cur,conn))
     visualization(jointables(cur,conn))
+    
         
 
 if __name__ == "__main__":
