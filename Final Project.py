@@ -140,8 +140,12 @@ def visualization(data_1, data_2):
     fig = plt.figure(figsize=(10,5))
     fig_1 = fig.add_subplot(121)
     fig_2 = fig.add_subplot(122) 
-    fig_1.hist(data_1, range=[-1,1], density=1, bins=10, edgecolor = 'black')
-    fig_2.hist(data_2, range=[-1,1], density=1, bins=10, edgecolor = 'black')
+    fig_1.hist(data_1, range=[-1,1], color='red', density=1, bins=10, edgecolor = 'black')
+    fig_2.hist(data_2, range=[-1,1], color='red',density=1, bins=10, edgecolor = 'black')
+    fig_1.set_xlabel('Change from March to June')
+    fig_2.set_ylabel('Frequency')
+    fig_2.set_xlabel('Change from June to September')
+    fig_2.set_ylabel('Frequency')
     """
     fig_1.xlabel('GrossProfitRatio Difference')
     fig_1.ylabel('Probability')
@@ -154,7 +158,7 @@ def visualization(data_1, data_2):
 def main(): 
     eft = "SPY"  #"SPY" refers to S&P 500 Index, which have approximately 500 companies representing U.S economy
     company_names = get_etf_company(eft) #Get the comapny names of SPY in a list
-    cur, conn = setupDatabase('Companies.db') 
+    cur, conn = setupDatabase('finalproj.db') 
     setupIncomeDataTable(company_names, cur, conn) #Get the infomration for 25 companies if database has less than 100 rows and insert them to the databse 
     visualization_data_1, visualization_data_2 = dataCalculation(cur,conn) #Calculate the data from the databse 
     conn.close() 
