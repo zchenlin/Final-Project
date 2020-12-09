@@ -163,8 +163,8 @@ def main():
     create_hospitalized_table(cur, conn)
 
     count = 0
-    start_date = datetime.date(2020,2,1) #start data collection from March 11, 2020
-    end_date = datetime.date(2020,12,6) #end data collection on December 5, 2020
+    start_date = datetime.date(2020,3,1) #start data collection from February 1, 2020
+    end_date = datetime.date(2020,12,6) #end data collection on December 6, 2020
     delta = datetime.timedelta(days=1)
     current_date = start_date
     while current_date <= end_date: #loops through all dates between start and end date
@@ -179,6 +179,7 @@ def main():
 
     createcalcfile(jointables(cur,conn))
     visualization(jointables(cur,conn))
+    conn.close()
     
         
 
