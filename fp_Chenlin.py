@@ -6,6 +6,7 @@ import sqlite3
 import matplotlib
 import matplotlib.pyplot as plt 
 import csv 
+from matplotlib.ticker import PercentFormatter
 
 # documentation, 25 limits, write caluculations to a file, change the sql file name 
 api_key = "989b7d0dacf40d04a9e654615aa9cafe"
@@ -141,12 +142,14 @@ def visualization(data_1, data_2):
     fig.suptitle('Gross Profit Ratio Changes during Covid-19 period')
     fig_1 = fig.add_subplot(121)
     fig_2 = fig.add_subplot(122) 
-    fig_1.hist(data_1, range=[-1,1], color='red', density=1, bins=10, edgecolor = 'black')
-    fig_2.hist(data_2, range=[-1,1], color='red',density=1, bins=10, edgecolor = 'black')
+    fig_1.hist(data_1, range=[-1,1], color='red',  bins=20, edgecolor = 'black')
+    fig_2.hist(data_2, range=[-1,1], color='red', bins=20, edgecolor = 'black')
     fig_1.set_xlabel('Change from March to June')
-    fig_1.set_ylabel('Frequency')
+    fig_1.set_ylabel('Percentage')
     fig_2.set_xlabel('Change from June to September')
-    fig_2.set_ylabel('Frequency')
+    fig_2.set_ylabel('Percentage')
+    fig_1.yaxis.set_major_formatter(PercentFormatter(xmax=len(data_1))) 
+    fig_2.yaxis.set_major_formatter(PercentFormatter(xmax=len(data_2)))
     fig.savefig('Revenue_Change.png')
     plt.show() 
     
