@@ -46,9 +46,9 @@ def get_add_data(cur, conn, date):
     url = create_request_url(date)
     cur.execute("SELECT * FROM Covid WHERE Covid.Date = ?", (date.strftime('%Y-%m-%d'), ))
     conn.commit()
-    check = cur.fetchone() #checks if the date/data exists in the database first to account for duplicates before grabbing API
+    check = cur.fetchone() 
     conn.commit()
-    if check != None: #if the date already exists
+    if check != None: 
         print(date, 'already exists')
         return 0 #returns false when data is already in database
     else:
@@ -123,12 +123,12 @@ def visualization(data):
     ax1 = fig.add_subplot(121)
     ax2 = fig.add_subplot(122)
 
-    ax1.bar(month_list, pos_list)
+    ax1.bar(month_list, pos_list, color='red')
     ax1.set_title('Total Positive COVID-19 Cases per Month in US')
     ax1.set_xlabel('Month')
     ax1.set_ylabel('Number of Positive Cases (millions)')
 
-    ax2.bar(month_list, hos_list)
+    ax2.bar(month_list, hos_list, color='red')
     ax2.set_title('Total Hospitalizations per Month in US')
     ax2.set_xlabel('Month')
     ax2.set_ylabel('Number of Hospitalizations (millions)')
